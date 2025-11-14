@@ -148,6 +148,7 @@ function broadcastSession(sessionId: string) {
     const snapshot: StateSnapshot = {
       sessionId: session.sessionId,
       round: session.round,
+      topicList: session.topicList,
       votesRevealed: session.votesRevealed,
       players: playersForClient,
     }
@@ -261,11 +262,11 @@ server.on('connection', (socket: ClientWebSocket) => {
           type: 'nudge',
           state: {
             fromPlayerId: cid,
-            targetPlayerId: msg.targetId,
+            targetPlayerId: msg.targetPlayerId,
             emoji: msg.emoji,
           },
         }
-        const targetSocket = clients.get(msg.targetId)
+        const targetSocket = clients.get(msg.targetPlayerId)
         if (targetSocket && targetSocket.readyState === WebSocket.OPEN) {
           targetSocket.send(JSON.stringify(nudgeMsg))
         }
