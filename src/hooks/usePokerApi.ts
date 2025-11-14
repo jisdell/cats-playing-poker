@@ -82,7 +82,7 @@ type ServerMessage =
 export const usePokerApi = (
   username: string,
   sessionId: string,
-  socketServerUrl: string,
+  socketServerUrl: string = 'ws://localhost:9001',
 ) => {
   const [socket, setSocket] = useState<WebSocket | null>(null)
   const [isConnected, setConnected] = useState(false)
