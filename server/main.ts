@@ -27,6 +27,12 @@ interface PokerTopic {
   addedByPlayerId: string
 }
 
+interface NudgeState {
+  emoji: string
+  fromPlayerId: string
+  targetPlayerId: string
+}
+
 interface SessionState {
   sessionId: string
   round: number
@@ -38,6 +44,7 @@ interface SessionState {
 interface StateSnapshot {
   sessionId: string
   round: number
+  topicList: PokerTopic[]
   votesRevealed: boolean
   players: PlayerState[]
 }
@@ -69,7 +76,7 @@ type ClientMessage =
     }
   | {
       type: 'nudge'
-      targetId: string
+      targetPlayerId: string
       emoji: string
     }
 
@@ -81,9 +88,7 @@ type ServerMessage =
     }
   | {
       type: 'nudge'
-      fromId: string
-      targetId: string
-      emoji: string
+      state: NudgeState
     }
 
 interface ClientWebSocket extends WebSocket {
@@ -254,9 +259,11 @@ server.on('connection', (socket: ClientWebSocket) => {
       case 'nudge': {
         const nudgeMsg: ServerMessage = {
           type: 'nudge',
-          fromId: cid,
-          targetId: msg.targetId,
-          emoji: msg.emoji,
+          state: {
+            fromPlayerId: cid,
+            targetPlayerId: msg.targetId,
+            emoji: msg.emoji,
+          },
         }
         const targetSocket = clients.get(msg.targetId)
         if (targetSocket && targetSocket.readyState === WebSocket.OPEN) {
