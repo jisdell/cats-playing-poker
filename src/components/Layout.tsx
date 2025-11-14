@@ -9,7 +9,7 @@ export const Layout = ({ children }: { children: ReactNode }) => (
       <Navbar />
     </header>
 
-    <main className="flex-grow overflow-auto">
+    <main className="grow overflow-auto">
       <ScrollArea className="h-full px-8">{children}</ScrollArea>
       <Toaster />
     </main>

@@ -6,9 +6,9 @@ const CARD_VALUES = ['1', '2', '3', '4', '5', '8', '??'] as VoteValue[]
 
 export const Hand = () => {
   return (
-    <div className="flex flex-row gap-4">
+    <div className="flex flex-row w-full justify-center gap-4">
       {CARD_VALUES.map((item) => (
-        <Button className="h-[10rem] w-[5rem] flex flex-col text-center justify-center bg-card-foreground rounded hover:bg-muted-foreground">
+        <Button className="h-40 w-20 flex flex-col text-center justify-center bg-card-foreground rounded hover:bg-muted-foreground">
           <h2 className="text-card text-4xl">{item}</h2>
         </Button>
       ))}
