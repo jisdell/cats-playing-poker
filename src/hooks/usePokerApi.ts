@@ -1,15 +1,15 @@
 import { useMemo, useState } from 'react'
 
-type VoteValue = '1' | '2' | '3' | '4' | '5' | '8' | '??'
+export type VoteValue = '1' | '2' | '3' | '4' | '5' | '8' | '??'
 
-interface PlayerState {
+export interface PlayerState {
   id: string
   username: string
   hasVoted: boolean
   vote: VoteValue | null
 }
 
-interface VoteStats {
+export interface VoteStats {
   final: VoteValue
   mean: number
   median: number
@@ -17,20 +17,20 @@ interface VoteStats {
   stddev: number
 }
 
-interface PokerTopic {
+export interface PokerTopic {
   name: string
   description: string
   stats: VoteStats | null
   addedByPlayerId: string
 }
 
-interface NudgeState {
+export interface NudgeState {
   emoji: string
   fromPlayerId: string
   targetPlayerId: string
 }
 
-interface SessionState {
+export interface SessionState {
   sessionId: string
   round: number
   topicList: PokerTopic[]
@@ -38,7 +38,7 @@ interface SessionState {
   players: PlayerState[]
 }
 
-type ClientMessage =
+export type ClientMessage =
   | {
       type: 'join'
       sessionId: string
@@ -68,7 +68,7 @@ type ClientMessage =
       emoji: string
     }
 
-type ServerMessage =
+export type ServerMessage =
   | {
       type: 'state'
       yourId: string

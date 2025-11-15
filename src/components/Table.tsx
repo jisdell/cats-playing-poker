@@ -1,11 +1,10 @@
 import { Button } from './ui/button'
-import { Card } from './ui/card'
 
 export const Table = () => {
   const topic = 'placeholder topic'
   const description = 'placeholder description'
   return (
-    <Card className="h-full w-full flex flex-col items-center">
+    <div className="h-full w-full flex flex-col items-center bg-card border border-muted-foreground rounded-xl p-2">
       <div className="h-full flex flex-col justify-between">
         <div>
           <h3>{topic}</h3>
@@ -17,6 +16,6 @@ export const Table = () => {
           <Button>{'->'}</Button>
         </div>
       </div>
-    </Card>
+    </div>
   )
 }

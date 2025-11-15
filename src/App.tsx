@@ -1,5 +1,5 @@
 import './App.css'
-import Init from './components/Init'
+import { JoinCard } from './components/JoinCard'
 import { Layout } from './components/Layout'
 import { ThemeProvider } from './components/theme-provider'
 import { Poker } from './pages/Poker'
@@ -10,7 +10,7 @@ function App() {
   return (
     <>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <Layout>{sessionID ? <Poker /> : <Init />}</Layout>
+        <Layout>{sessionID ? <Poker /> : <JoinCard/>}</Layout>
       </ThemeProvider>
     </>
   )
