@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 export type VoteValue = '1' | '2' | '3' | '4' | '5' | '8' | '??'
 
@@ -30,8 +30,8 @@ export interface NudgeState {
   targetPlayerId: string
 }
 
-export interface SessionState {
-  sessionId: string
+export interface RoomState {
+  roomId: string
   round: number
   topicList: PokerTopic[]
   votesRevealed: boolean
@@ -40,8 +40,11 @@ export interface SessionState {
 
 export type ClientMessage =
   | {
+      type: 'handshake'
+    }
+  | {
       type: 'join'
-      sessionId: string
+      roomId: string
       username: string
     }
   | {
@@ -72,73 +75,127 @@ export type ServerMessage =
   | {
       type: 'state'
       yourId: string
-      state: SessionState
+      state: RoomState
     }
   | {
       type: 'nudge'
       state: NudgeState
     }
 
+export type ClientConfig = {
+  username: string
+  roomId: string
+}
+
 export const usePokerApi = (
-  username: string,
-  sessionId: string,
+  // username: string,
+  // roomId: string,
   socketServerUrl: string = 'ws://localhost:9001',
 ) => {
-  const [socket, setSocket] = useState<WebSocket | null>(null)
+  const [clientConfig, setClientConfig] = useState<ClientConfig | null>(null)
   const [isConnected, setConnected] = useState(false)
   const [clientPlayerId, setClientPlayerId] = useState<string | null>(null)
-  const [sessionState, setSessionState] = useState<SessionState | null>(null)
+  const [roomState, setRoomState] = useState<RoomState | null>(null)
   const [nudge, setNudge] = useState<NudgeState | null>(null)
 
-  const ws = new WebSocket(socketServerUrl)
+  // const ws = new WebSocket(socketServerUrl)
   // setSocket(ws)
 
-  ws.onopen = () => {
-    setConnected(true)
-    const msg: ClientMessage = {
-      type: 'join',
-      sessionId,
-      username,
-    }
-    ws.send(JSON.stringify(msg))
-  }
+  const ws = useRef<WebSocket>(null)
 
-  ws.onmessage = (event) => {
-    let parsed: ServerMessage
-    try {
-      parsed = JSON.parse(event.data)
-    } catch {
-      return
+  useEffect(() => {
+    // Create a new websocket if we don't already have one:
+    if (!ws.current) {
+      ws.current = new WebSocket(socketServerUrl)
+
+      // Register a listener to detect incoming messages:
+      ws.current.addEventListener('message', (event) => {
+        switch (event.data.type) {
+          case 'state': {
+            const { state, yourId: myId } = event.data
+            // If we receive a new state and don't already have one,
+            // assume that we're connecting for the first time:
+            if (roomState === null && state) {
+              setConnected(true)
+              // Server is responsible for allocating us an ID:
+              setClientPlayerId(myId)
+            }
+            setRoomState(event.data.state)
+            break
+          }
+          case 'nudge': {
+            setNudge(event.data.state)
+            break
+          }
+          default: {
+            console.error(
+              `Got unknown message from server:\n${JSON.stringify(event.data, null, 2)}`,
+            )
+          }
+        }
+      })
     }
 
-    if (parsed.type === 'state') {
-      setClientPlayerId(parsed.yourId)
-      setSessionState(parsed.state)
-    } else if (parsed.type === 'nudge') {
-      if (parsed.state.targetPlayerId === clientPlayerId) {
-        const nudge = parsed.state
-        setNudge(nudge)
+    // Handle initial handshake if not already connected:
+    ws.current.onopen = () => {
+      if (!clientConfig)
+        throw new Error(
+          `Missing client config (roomId, username); can't open connection.`,
+        )
+      if (!isConnected && !!ws.current) {
+        const msg: ClientMessage = {
+          type: 'join',
+          ...clientConfig,
+        }
+        console.log(JSON.stringify(msg, null, 2))
+        ws.current.send(JSON.stringify(msg))
       }
+      console.log('client socket opened, join msg sent')
     }
-  }
 
-  ws.onclose = () => {
-    setConnected(false)
-    setSocket(null)
-    setSessionState(null)
-  }
+    // Handle cleanup on socket close (forget state + identity):
+    ws.current.onclose = () => {
+      console.log('Client socket closed, clearing client state')
+      setRoomState(null)
+      setNudge(null)
+      setClientPlayerId(null)
+    }
 
-  ws.onerror = () => {
-    setConnected(false)
-  }
+    const wsCurrent = ws?.current
+
+    // Close the socket whenever the calling component unmounts
+    return () => {
+      wsCurrent?.close()
+    }
+  }, [isConnected, socketServerUrl, clientConfig, roomState])
+
+  // ws.onerror = () => {
+  //   setConnected(false)
+  // }
 
   const sendMessage = (msg: ClientMessage) => {
-    if (!socket || socket.readyState !== WebSocket.OPEN) return
-    socket.send(JSON.stringify(msg))
+    if (ws.current) {
+      ws.current.send(JSON.stringify(msg))
+    } else {
+      throw new Error(
+        `Can't send client message; websocket currently uninitialized`,
+      )
+    }
   }
 
-  const handleVote = (v: VoteValue) => {
-    sendMessage({ type: 'vote', value: v })
+  // BEGIN API handlers:
+
+  const handleInitClientConfig = (roomId: string, username: string) => {
+    // TODO: Maybe validate at some point
+    setClientConfig({ roomId, username })
+  }
+
+  const handleJoin = (roomId: string, username: string) => {
+    sendMessage({
+      type: 'join',
+      roomId,
+      username,
+    })
   }
 
   const handleAddTopic = (topic: Omit<PokerTopic, 'addedByPlayerId'>) => {
@@ -157,6 +214,10 @@ export const usePokerApi = (
     sendMessage({ type: 'removeTopic', index: topicIndex })
   }
 
+  const handleVote = (v: VoteValue) => {
+    sendMessage({ type: 'vote', value: v })
+  }
+
   const handleReveal = () => {
     sendMessage({ type: 'reveal' })
   }
@@ -170,21 +231,23 @@ export const usePokerApi = (
   }
 
   const hasEveryoneVoted = useMemo(() => {
-    if (!sessionState) return false
-    const players = sessionState.players
+    if (!roomState) return false
+    const players = roomState.players
     if (players.length === 0) return false
     return players.every((p) => p.hasVoted)
-  }, [sessionState])
+  }, [roomState])
 
   const closeSocket = () => {
-    ws.close()
+    if (ws.current) ws.current.close()
   }
   return {
     isConnected,
-    sessionState,
-    vote: handleVote,
+    roomState,
+    initClientConfig: handleInitClientConfig,
+    join: handleJoin,
     addTopic: handleAddTopic,
     removeTopic: handleRemoveTopic,
+    vote: handleVote,
     reveal: handleReveal,
     newRound: handleNewRound,
     sendNudge: handleSendNudge,

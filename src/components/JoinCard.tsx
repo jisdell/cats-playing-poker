@@ -1,29 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldDescription, FieldGroup } from '@/components/ui/field'
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp'
+import { Input } from './ui/input'
 
-export const JoinCard = () => {
-  const [otpValue, setOtpValue] = useState('')
-  const [playerName, setPlayerName] = useState<string | null>(null)
-
-  useEffect(() => {
-    const name = localStorage.getItem('playerName')
-    setPlayerName(name)
-  }, [])
+export const JoinCard = ({
+  join,
+}: {
+  join(roomId: string, username: string): void
+}) => {
+  const [roomId, setRoomId] = useState('')
+  const [username, setUsername] = useState<string | null>(() =>
+    localStorage.getItem('username'),
+  )
 
   const generateRandomCode = (): string => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     let result = ''
     for (let i = 0; i < 6; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length))
@@ -33,13 +31,24 @@ export const JoinCard = () => {
 
   const handleCreate = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault()
-    const code = generateRandomCode()
-    window.location.href = `/${code}`
+    if (username === null) {
+      console.error('username required')
+      return
+    }
+    const newRoomId = generateRandomCode()
+    join(newRoomId, username)
+    window.location.href = `/${newRoomId}`
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    window.location.href = `/${otpValue}`
+    if (username === null) {
+      console.error('username required')
+      return
+    }
+    join(roomId, username)
+    // TODO: Use client-side routing!
+    window.location.href = `/${roomId}`
   }
 
   return (
@@ -47,7 +56,7 @@ export const JoinCard = () => {
       <Card className="text-center min-w-[400px]">
         <CardHeader>
           <CardTitle>
-            {playerName ? `Howdy, ${playerName}!` : 'Welcome, Player!'}
+            {username ? `Howdy, ${username}!` : 'Welcome, Player!'}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -58,8 +67,8 @@ export const JoinCard = () => {
                   maxLength={6}
                   id="otp"
                   required
-                  value={otpValue}
-                  onChange={setOtpValue}
+                  value={roomId}
+                  onChange={setRoomId}
                 >
                   <InputOTPGroup className="w-full flex justify-center gap-2.5 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border">
                     <InputOTPSlot index={0} />
@@ -71,13 +80,20 @@ export const JoinCard = () => {
                   </InputOTPGroup>
                 </InputOTP>
                 <FieldDescription>
-                  Enter your 6-digit session code
+                  Enter your 6-digit room code
                 </FieldDescription>
+                <Input
+                  placeholder="username"
+                  onChange={(e) => setUsername(e.target.value)}
+                />
               </Field>
               <FieldGroup>
                 <Button type="submit">Join</Button>
                 <FieldDescription className="text-center">
-                  Don't have a code? <a href="#" onClick={handleCreate}>Create Room</a>
+                  Don't have a code?{' '}
+                  <a href="#" onClick={handleCreate}>
+                    Create Room
+                  </a>
                 </FieldDescription>
               </FieldGroup>
             </FieldGroup>

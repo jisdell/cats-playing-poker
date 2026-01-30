@@ -33,8 +33,8 @@ interface NudgeState {
   targetPlayerId: string
 }
 
-interface SessionState {
-  sessionId: string
+interface RoomState {
+  roomId: string
   round: number
   topicList: PokerTopic[]
   votesRevealed: boolean
@@ -42,7 +42,7 @@ interface SessionState {
 }
 
 interface StateSnapshot {
-  sessionId: string
+  roomId: string
   round: number
   topicList: PokerTopic[]
   votesRevealed: boolean
@@ -52,8 +52,11 @@ interface StateSnapshot {
 // netcode types
 type ClientMessage =
   | {
+      type: 'handshake'
+    }
+  | {
       type: 'join'
-      sessionId: string
+      roomId: string
       username: string
     }
   | {
@@ -95,8 +98,8 @@ interface ClientWebSocket extends WebSocket {
   clientId?: string
 }
 
-const sessions = new Map<string, SessionState>()
-const clientToSession = new Map<string, string>()
+const rooms = new Map<string, RoomState>()
+const clientToRoom = new Map<string, string>()
 const clients = new Map<string, ClientWebSocket>()
 
 let clientCounter = 0
@@ -109,34 +112,34 @@ function createClientId() {
   return `c-${clientCounter}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-function getOrCreateSession(sessionId: string): SessionState {
-  let session = sessions.get(sessionId)
-  if (!session) {
-    session = {
-      sessionId,
+function getOrCreateRoom(roomId: string): RoomState {
+  let room = rooms.get(roomId)
+  if (!room) {
+    room = {
+      roomId,
       round: 1,
       votesRevealed: false,
       players: {},
       topicList: [],
     }
-    sessions.set(sessionId, session)
+    rooms.set(roomId, room)
   }
-  return session
+  return room
 }
 
-function broadcastSession(sessionId: string) {
-  const session = sessions.get(sessionId)
-  if (!session) return
+function broadcastRoom(roomId: string) {
+  const room = rooms.get(roomId)
+  if (!room) return
 
-  const playerIds = Object.keys(session.players)
+  const playerIds = Object.keys(room.players)
 
   for (const clientId of playerIds) {
     const ws = clients.get(clientId)
     if (!ws || ws.readyState !== WebSocket.OPEN) continue
 
     const playersForClient = playerIds.map((pid) => {
-      const p = session.players[pid]
-      const showVote = session.votesRevealed || pid === clientId
+      const p = room.players[pid]
+      const showVote = room.votesRevealed || pid === clientId
       return {
         id: p.id,
         username: p.username,
@@ -146,10 +149,10 @@ function broadcastSession(sessionId: string) {
     })
 
     const snapshot: StateSnapshot = {
-      sessionId: session.sessionId,
-      round: session.round,
-      topicList: session.topicList,
-      votesRevealed: session.votesRevealed,
+      roomId: room.roomId,
+      round: room.round,
+      topicList: room.topicList,
+      votesRevealed: room.votesRevealed,
       players: playersForClient,
     }
 
@@ -162,13 +165,13 @@ function broadcastSession(sessionId: string) {
   }
 }
 
-function revealIfReady(session: SessionState) {
-  const players = Object.values(session.players)
+function revealIfReady(room: RoomState) {
+  const players = Object.values(room.players)
   if (players.length === 0) return
 
   const allVoted = players.every((p) => p.hasVoted)
-  if (allVoted && !session.votesRevealed) {
-    session.votesRevealed = true
+  if (allVoted && !room.votesRevealed) {
+    room.votesRevealed = true
   }
 }
 
@@ -191,70 +194,68 @@ server.on('connection', (socket: ClientWebSocket) => {
     const cid = socket.clientId
 
     if (msg.type === 'join') {
-      const session = getOrCreateSession(msg.sessionId)
+      const room = getOrCreateRoom(msg.roomId)
 
-      session.players[cid] = {
+      room.players[cid] = {
         id: cid,
         username: msg.username,
         hasVoted: false,
         vote: null,
       }
-      clientToSession.set(cid, msg.sessionId)
+      clientToRoom.set(cid, msg.roomId)
 
-      console.log(
-        `Client ${cid} (${msg.username}) joined session ${msg.sessionId}`,
-      )
+      console.log(`Client ${cid} (${msg.username}) joined room ${msg.roomId}`)
 
-      broadcastSession(msg.sessionId)
+      broadcastRoom(msg.roomId)
       return
     }
 
-    const sessionId = clientToSession.get(cid)
-    if (!sessionId) {
-      console.warn('Got message from client not in session', cid)
+    const roomId = clientToRoom.get(cid)
+    if (!roomId) {
+      console.warn('Got message from client not in room', cid)
       return
     }
 
-    const session = sessions.get(sessionId)
-    if (!session) return
+    const room = rooms.get(roomId)
+    if (!room) return
 
     switch (msg.type) {
       case 'vote': {
-        const player = session.players[cid]
+        const player = room.players[cid]
         if (!player) return
         player.vote = msg.value
         player.hasVoted = true
-        revealIfReady(session)
-        broadcastSession(sessionId)
+        revealIfReady(room)
+        broadcastRoom(roomId)
         break
       }
       case 'addTopic': {
-        session.topicList = [...session.topicList, msg.value]
+        room.topicList = [...room.topicList, msg.value]
         break
       }
       case 'removeTopic': {
-        if (msg.index < 0 || msg.index > session.topicList.length - 1) {
+        if (msg.index < 0 || msg.index > room.topicList.length - 1) {
           console.error(
             'Error: attempted to remove topic with out-of-bounds index',
           )
           return
         }
-        session.topicList = session.topicList.splice(msg.index, 1)
+        room.topicList = room.topicList.splice(msg.index, 1)
         break
       }
       case 'reveal': {
-        session.votesRevealed = true
-        broadcastSession(sessionId)
+        room.votesRevealed = true
+        broadcastRoom(roomId)
         break
       }
       case 'newRound': {
-        session.round += 1
-        session.votesRevealed = false
-        Object.values(session.players).forEach((p) => {
+        room.round += 1
+        room.votesRevealed = false
+        Object.values(room.players).forEach((p) => {
           p.hasVoted = false
           p.vote = null
         })
-        broadcastSession(sessionId)
+        broadcastRoom(roomId)
         break
       }
       case 'nudge': {
