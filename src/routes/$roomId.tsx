@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/$roomId')({
   component: RouteComponent,
+  loader: ({ context }) => context,
 })
 
 function RouteComponent() {

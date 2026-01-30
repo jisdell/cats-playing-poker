@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 
 export type VoteValue = '1' | '2' | '3' | '4' | '5' | '8' | '??'
 
@@ -90,6 +90,7 @@ export type ClientConfig = {
 export const usePokerApi = (
   // username: string,
   // roomId: string,
+  socketRef: RefObject<WebSocket | null>,
   socketServerUrl: string = 'ws://localhost:9001',
 ) => {
   const [clientConfig, setClientConfig] = useState<ClientConfig | null>(null)
@@ -101,18 +102,18 @@ export const usePokerApi = (
   // const ws = new WebSocket(socketServerUrl)
   // setSocket(ws)
 
-  const ws = useRef<WebSocket>(null)
-
   useEffect(() => {
     // Create a new websocket if we don't already have one:
-    if (!ws.current) {
-      ws.current = new WebSocket(socketServerUrl)
+    if (!socketRef.current) {
+      socketRef.current = new WebSocket(socketServerUrl)
 
       // Register a listener to detect incoming messages:
-      ws.current.addEventListener('message', (event) => {
-        switch (event.data.type) {
+      socketRef.current.addEventListener('message', (event) => {
+        const msg = JSON.parse(event.data)
+        if (!msg) throw new Error('Got empty server msg')
+        switch (msg.type) {
           case 'state': {
-            const { state, yourId: myId } = event.data
+            const { state, yourId: myId } = msg
             // If we receive a new state and don't already have one,
             // assume that we're connecting for the first time:
             if (roomState === null && state) {
@@ -120,11 +121,11 @@ export const usePokerApi = (
               // Server is responsible for allocating us an ID:
               setClientPlayerId(myId)
             }
-            setRoomState(event.data.state)
+            setRoomState(msg.state)
             break
           }
           case 'nudge': {
-            setNudge(event.data.state)
+            setNudge(msg.state)
             break
           }
           default: {
@@ -137,45 +138,39 @@ export const usePokerApi = (
     }
 
     // Handle initial handshake if not already connected:
-    ws.current.onopen = () => {
-      if (!clientConfig)
-        throw new Error(
-          `Missing client config (roomId, username); can't open connection.`,
-        )
-      if (!isConnected && !!ws.current) {
+    socketRef.current.onopen = () => {
+      if (!isConnected && !!socketRef.current) {
         const msg: ClientMessage = {
-          type: 'join',
-          ...clientConfig,
+          type: 'handshake',
         }
-        console.log(JSON.stringify(msg, null, 2))
-        ws.current.send(JSON.stringify(msg))
+        socketRef.current.send(JSON.stringify(msg))
       }
-      console.log('client socket opened, join msg sent')
+      console.log('client socket opened, sent handshake')
     }
 
     // Handle cleanup on socket close (forget state + identity):
-    ws.current.onclose = () => {
+    socketRef.current.onclose = () => {
       console.log('Client socket closed, clearing client state')
       setRoomState(null)
       setNudge(null)
       setClientPlayerId(null)
     }
 
-    const wsCurrent = ws?.current
+    const wsCurrent = socketRef?.current
 
     // Close the socket whenever the calling component unmounts
     return () => {
       wsCurrent?.close()
     }
-  }, [isConnected, socketServerUrl, clientConfig, roomState])
+  }, [isConnected, socketServerUrl, socketRef, clientConfig, roomState])
 
-  // ws.onerror = () => {
+  // socketRef.onerror = () => {
   //   setConnected(false)
   // }
 
   const sendMessage = (msg: ClientMessage) => {
-    if (ws.current) {
-      ws.current.send(JSON.stringify(msg))
+    if (socketRef.current) {
+      socketRef.current.send(JSON.stringify(msg))
     } else {
       throw new Error(
         `Can't send client message; websocket currently uninitialized`,
@@ -238,7 +233,7 @@ export const usePokerApi = (
   }, [roomState])
 
   const closeSocket = () => {
-    if (ws.current) ws.current.close()
+    if (socketRef.current) socketRef.current.close()
   }
   return {
     isConnected,

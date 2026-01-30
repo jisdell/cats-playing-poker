@@ -3,9 +3,12 @@ import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
-  loader: ({ context }) => {},
+  loader: ({ context }) => {
+    return context.join
+  },
 })
 
 function RouteComponent() {
-  return <JoinCard />
+  const join = Route.useLoaderData()
+  return <JoinCard join={join} />
 }

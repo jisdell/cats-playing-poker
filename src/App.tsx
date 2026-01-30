@@ -1,10 +1,11 @@
 import { RouterProvider } from '@tanstack/react-router'
 import { router } from './router.tsx'
 import { usePokerApi } from '@/hooks/usePokerApi'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 function App() {
-  const pokerApi = usePokerApi()
+  const socketRef = useRef<WebSocket>(null)
+  const pokerApi = usePokerApi(socketRef)
 
   useEffect(() => {
     console.log(pokerApi.isConnected, Date.now())

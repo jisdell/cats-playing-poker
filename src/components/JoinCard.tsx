@@ -8,12 +8,14 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp'
 import { Input } from './ui/input'
+import { useNavigate } from '@tanstack/react-router'
 
 export const JoinCard = ({
   join,
 }: {
   join(roomId: string, username: string): void
 }) => {
+  const navigate = useNavigate()
   const [roomId, setRoomId] = useState('')
   const [username, setUsername] = useState<string | null>(() =>
     localStorage.getItem('username'),
@@ -38,6 +40,7 @@ export const JoinCard = ({
     const newRoomId = generateRandomCode()
     join(newRoomId, username)
     // window.location.href = `/${newRoomId}`
+    navigate({ to: '/$roomId', params: { roomId: newRoomId } })
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -47,8 +50,9 @@ export const JoinCard = ({
       return
     }
     join(roomId, username)
-    // TODO: Use client-side routing!
+
     // window.location.href = `/${roomId}`
+    navigate({ to: '/$roomId', params: { roomId } })
   }
 
   return (

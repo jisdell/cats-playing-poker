@@ -1,7 +1,12 @@
 import { Hand } from '@/components/Hand'
 import { PlayArea } from '@/components/PlayArea'
+import type { usePokerApi } from '@/hooks/usePokerApi'
 
-export const Poker = () => {
+export const Poker = ({
+  pokerApi,
+}: {
+  pokerApi: ReturnType<typeof usePokerApi>
+}) => {
   return (
     <div className="flex w-screen h-[calc(100vh-60px)]">
       {/* Poker */}
@@ -10,9 +15,7 @@ export const Poker = () => {
         <Hand />
       </div>
       {/* Topics */}
-      <div className="w-1/4 bg-card">
-        This is where topics will be listed
-      </div>
+      <div className="w-1/4 bg-card">This is where topics will be listed</div>
     </div>
   )
 }
