@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useEffect, useMemo, useState, type RefObject } from 'react'
 
 export type VoteValue = '1' | '2' | '3' | '4' | '5' | '8' | '??'
 
@@ -156,12 +156,13 @@ export const usePokerApi = (
       setClientPlayerId(null)
     }
 
-    const wsCurrent = socketRef?.current
+    // const wsCurrent = socketRef?.current
 
     // Close the socket whenever the calling component unmounts
-    return () => {
-      wsCurrent?.close()
-    }
+    // return () => {
+    //   wsCurrent?.close()
+    // }
+    return () => socketRef.current?.close()
   }, [isConnected, socketServerUrl, socketRef, clientConfig, roomState])
 
   // socketRef.onerror = () => {

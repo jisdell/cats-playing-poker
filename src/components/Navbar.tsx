@@ -1,3 +1,4 @@
+import { HomeButton } from './HomeButton'
 import { ModeToggle } from './mode-toggle'
 import RoomCode from './RoomCode'
 
@@ -14,6 +15,7 @@ export const Navbar = () => {
       <div className="flex flex-row gap-4 items-center">
         <RoomCode />
         <ModeToggle />
+        <HomeButton />
       </div>
     </div>
   )

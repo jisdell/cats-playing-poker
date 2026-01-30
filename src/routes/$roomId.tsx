@@ -3,9 +3,9 @@ import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/$roomId')({
   component: RouteComponent,
-  loader: ({ context }) => context,
 })
 
 function RouteComponent() {
-  return <Poker />
+  const pokerApi = Route.useRouteContext()
+  return <Poker pokerApi={pokerApi} />
 }

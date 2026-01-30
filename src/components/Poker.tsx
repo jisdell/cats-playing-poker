@@ -11,7 +11,7 @@ export const Poker = ({
     <div className="flex w-screen h-[calc(100vh-60px)]">
       {/* Poker */}
       <div className="flex flex-col justify-between py-8 w-3/4 items-center">
-        <PlayArea />
+        <PlayArea players={pokerApi.roomState?.players} />
         <Hand />
       </div>
       {/* Topics */}

@@ -1,23 +1,21 @@
 import { Seat } from './Seat'
 import { Table } from './Table'
 import type { PlayerState } from '@/hooks/usePokerApi'
-// import { getRouteApi, useLocation } from '@tanstack/react-router'
+// import { useLocation } from '@tanstack/react-router'
 
-export const PlayArea = () => {
+export const PlayArea = ({
+  players,
+}: {
+  players: PlayerState[] | undefined
+}) => {
   // const location = useLocation({
-  //   select: (location) => location.pathname
+  //   select: (location) => location.pathname,
   // })
-  const mockPlayers: PlayerState[] = [
-    { id: '1', username: 'Nova', hasVoted: false, vote: null },
-    { id: '2', username: 'Kai', hasVoted: true, vote: '3' },
-    { id: '3', username: 'Skylar', hasVoted: false, vote: null },
-    { id: '4', username: 'Axel', hasVoted: true, vote: '5' },
-    { id: '5', username: 'Zara', hasVoted: false, vote: null },
-    { id: '6', username: 'Leo', hasVoted: true, vote: '2' },
-  ]
+
+  console.log(players)
 
   const genSeats = (side: number) => {
-    return mockPlayers.map((player, index) =>
+    return players?.map((player, index) =>
       index % 4 === side ? <Seat key={player.id} player={player} /> : null,
     )
   }

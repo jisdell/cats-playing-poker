@@ -8,6 +8,10 @@ function App() {
   const pokerApi = usePokerApi(socketRef)
 
   useEffect(() => {
+    console.log('App rerender')
+  }, [])
+
+  useEffect(() => {
     console.log(pokerApi.isConnected, Date.now())
   }, [pokerApi.isConnected])
 
