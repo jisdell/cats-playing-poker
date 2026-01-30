@@ -1,9 +1,8 @@
 import { Navbar } from '@/components/Navbar'
 import { ThemeProvider } from '@/components/theme-provider'
-import { usePokerApi } from '@/hooks/usePokerApi'
+import type { usePokerApi } from '@/hooks/usePokerApi'
 import { ScrollArea } from '@radix-ui/react-scroll-area'
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
-import { useEffect } from 'react'
 import { Toaster } from 'sonner'
 
 export const Route = createRootRouteWithContext<
@@ -13,25 +12,6 @@ export const Route = createRootRouteWithContext<
 })
 
 function RootComponent() {
-  const {
-    isConnected,
-    roomState,
-    initClientConfig,
-    join,
-    addTopic,
-    removeTopic,
-    vote,
-    reveal,
-    newRound,
-    sendNudge,
-    nudge,
-    hasEveryoneVoted,
-    closeSocket,
-  } = usePokerApi()
-
-  useEffect(() => {
-    console.log(isConnected, Date.now())
-  }, [isConnected])
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <div className="h-screen w-screen flex flex-col bg-background text-foreground">

@@ -37,7 +37,7 @@ export const JoinCard = ({
     }
     const newRoomId = generateRandomCode()
     join(newRoomId, username)
-    window.location.href = `/${newRoomId}`
+    // window.location.href = `/${newRoomId}`
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -48,7 +48,7 @@ export const JoinCard = ({
     }
     join(roomId, username)
     // TODO: Use client-side routing!
-    window.location.href = `/${roomId}`
+    // window.location.href = `/${roomId}`
   }
 
   return (
