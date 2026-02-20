@@ -6,5 +6,6 @@ export const Route = createFileRoute('/$roomId')({
 })
 
 function RouteComponent() {
-  return <Poker />
+  const pokerApi = Route.useRouteContext()
+  return <Poker pokerApi={pokerApi} />
 }

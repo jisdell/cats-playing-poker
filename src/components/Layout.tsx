@@ -13,7 +13,7 @@ export const Layout = ({ children }: { children: ReactNode }) => (
       <ScrollArea className="overflow-x-auto">
         <div className="h-[calc(100vh-60px)] flex">{children}</div>
       </ScrollArea>
-      <Toaster position="bottom-left" richColors />
+      <Toaster position="bottom-left" richColors/>
     </main>
   </div>
 )

@@ -2,15 +2,7 @@ import { useState } from 'react'
 import { Button } from './ui/button'
 import type { VoteValue } from '@/hooks/usePokerApi'
 
-const CARD_VALUES = [
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-  '8',
-  '??',
-] as const satisfies readonly VoteValue[]
+const CARD_VALUES: VoteValue[] = ['1', '2', '3', '4', '5', '8', '??']
 
 export const Hand = () => {
   const [selectedCard, setSelectedCard] = useState<VoteValue | null>(null)
@@ -29,9 +21,7 @@ export const Hand = () => {
                 : 'bg-card-foreground border-2 border-transparent hover:bg-muted-foreground hover:border-primary hover:-translate-y-4'
             }`}
           >
-            <h2
-              className={`text-4xl ${isSelected ? 'text-primary-foreground' : 'text-card'}`}
-            >
+            <h2 className={`text-4xl ${isSelected ? 'text-primary-foreground' : 'text-card'}`}>
               {item}
             </h2>
           </Button>
