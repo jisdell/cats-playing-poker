@@ -8,20 +8,21 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
 } from './ui/sidebar'
 import { Button } from './ui/button'
-import { useSetAtom } from 'jotai'
+import { useAtom, useSetAtom } from 'jotai'
 import { createTopicAtom, topicIndexAtom } from '@/lib/atoms'
-import { PlusIcon } from 'lucide-react'
+import { PlusIcon, XIcon } from 'lucide-react'
 
 export function TopicsBar() {
-  const { roomState, isConnected } = usePokerContext()
+  const { roomState, isConnected, removeTopic } = usePokerContext()
   const topics = roomState?.topicList
 
   const setIsCreate = useSetAtom(createTopicAtom)
-  const setTopicIndex = useSetAtom(topicIndexAtom)
+  const [topicIndex, setTopicIndex] = useAtom(topicIndexAtom)
 
   return (
     <Sidebar
@@ -46,11 +47,19 @@ export function TopicsBar() {
                     <SidebarMenuButton
                       tooltip={topic.name}
                       onClick={() => setTopicIndex(index)}
+                      isActive={topicIndex === index}
                     >
-                      <span className="truncate flex-1 font-medium">
-                        {topic.name}
-                      </span>
+                      <span>{topic.name}</span>
                     </SidebarMenuButton>
+                    <SidebarMenuAction
+                      aria-label={`Delete topic ${topic.name}`}
+                      className="hover:text-destructive"
+                      onClick={() => {
+                        removeTopic?.(index)
+                      }}
+                    >
+                      <XIcon />
+                    </SidebarMenuAction>
                   </SidebarMenuItem>
                 ))
               ) : (

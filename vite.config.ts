@@ -11,7 +11,7 @@ export default defineConfig({
       target: 'react',
       autoCodeSplitting: true,
     }),
-    react({ babel: { presets: ['jotai-babel'] } }),
+    react({ babel: { presets: ['jotai-babel/preset'] } }),
     tailwindcss(),
   ],
   resolve: {
