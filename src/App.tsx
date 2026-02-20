@@ -1,7 +1,7 @@
 import { RouterProvider } from '@tanstack/react-router'
 import { router } from './router.tsx'
 import { usePokerApi } from '@/hooks/usePokerApi'
-import { useEffect, useRef } from 'react'
+import { StrictMode, useEffect, useRef } from 'react'
 
 function App() {
   const socketRef = useRef<WebSocket>(null)
@@ -19,4 +19,10 @@ function App() {
   return <RouterProvider router={router} context={pokerApi} />
 }
 
-export default App
+export default function AppWrapper() {
+  return (
+    <StrictMode>
+      <App />
+    </StrictMode>
+  )
+}

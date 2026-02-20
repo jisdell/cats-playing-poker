@@ -114,14 +114,9 @@ export const usePokerApi = (
         switch (msg.type) {
           case 'state': {
             const { state, yourId: myId } = msg
-            // If we receive a new state and don't already have one,
-            // assume that we're connecting for the first time:
-            if (roomState === null && state) {
-              setConnected(true)
-              // Server is responsible for allocating us an ID:
-              setClientPlayerId(myId)
-            }
-            setRoomState(msg.state)
+            setConnected(true)
+            setClientPlayerId(myId)
+            setRoomState(state)
             break
           }
           case 'nudge': {
@@ -139,10 +134,8 @@ export const usePokerApi = (
 
     // Handle initial handshake if not already connected:
     socketRef.current.onopen = () => {
-      if (!isConnected && !!socketRef.current) {
-        const msg: ClientMessage = {
-          type: 'handshake',
-        }
+      if (socketRef.current) {
+        const msg: ClientMessage = { type: 'handshake' }
         socketRef.current.send(JSON.stringify(msg))
       }
       console.log('client socket opened, sent handshake')
@@ -154,6 +147,7 @@ export const usePokerApi = (
       setRoomState(null)
       setNudge(null)
       setClientPlayerId(null)
+      setConnected(false)
     }
 
     // const wsCurrent = socketRef?.current
@@ -162,8 +156,11 @@ export const usePokerApi = (
     // return () => {
     //   wsCurrent?.close()
     // }
-    return () => socketRef.current?.close()
-  }, [isConnected, socketServerUrl, socketRef, clientConfig, roomState])
+    return () => {
+      socketRef.current?.close()
+      socketRef.current = null
+    }
+  }, [socketServerUrl, socketRef])
 
   // socketRef.onerror = () => {
   //   setConnected(false)
