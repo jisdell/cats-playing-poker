@@ -9,3 +9,4 @@ In an attempt to learn something while solving a problem that our team consisten
 - **TypeScript** - Full type safety
 - **TailwindCSS** 4 - Utility-first CSS framework
 - **ShadCN UI** - Essential components (Button, ScrollArea)
+- **Tanstack Router** - Client-side routing
