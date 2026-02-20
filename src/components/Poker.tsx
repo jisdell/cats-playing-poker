@@ -1,21 +1,25 @@
 import { Hand } from '@/components/Hand'
 import { PlayArea } from '@/components/PlayArea'
-import type { usePokerApi } from '@/hooks/usePokerApi'
+import { SidebarProvider } from './ui/sidebar'
+import { TopicsBar } from './TopicsBar'
 
-export const Poker = ({
-  pokerApi,
-}: {
-  pokerApi: ReturnType<typeof usePokerApi>
-}) => {
+export const Poker = () => {
   return (
-    <div className="flex w-screen h-[calc(100vh-60px)]">
-      {/* Poker */}
-      <div className="flex flex-col justify-between py-8 w-3/4 items-center">
-        <PlayArea players={pokerApi.roomState?.players} />
-        <Hand />
+    <SidebarProvider>
+      <div className="flex w-screen h-[calc(100vh-60px)]">
+        {/* Poker */}
+        <div className="flex flex-col justify-between py-8 flex-1 items-center relative gap-4 overflow-hidden">
+          {/* <div className="flex w-full justify-end px-8">
+            <SidebarTrigger />
+          </div> */}
+          <div className="flex-1 flex items-center justify-center w-full">
+            <PlayArea />
+          </div>
+          <Hand />
+        </div>
+        {/* Topics */}
+        <TopicsBar />
       </div>
-      {/* Topics */}
-      <div className="w-1/4 bg-card">This is where topics will be listed</div>
-    </div>
+    </SidebarProvider>
   )
 }

@@ -231,6 +231,7 @@ server.on('connection', (socket: ClientWebSocket) => {
       }
       case 'addTopic': {
         room.topicList = [...room.topicList, msg.value]
+        broadcastRoom(roomId)
         break
       }
       case 'removeTopic': {
@@ -241,6 +242,7 @@ server.on('connection', (socket: ClientWebSocket) => {
           return
         }
         room.topicList = room.topicList.splice(msg.index, 1)
+        broadcastRoom(roomId)
         break
       }
       case 'reveal': {
