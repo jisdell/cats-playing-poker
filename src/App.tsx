@@ -1,22 +1,19 @@
 import { RouterProvider } from '@tanstack/react-router'
 import { router } from './router.tsx'
 import { usePokerApi } from '@/hooks/usePokerApi'
-import { StrictMode, useEffect, useRef } from 'react'
+import { StrictMode, useRef } from 'react'
+import { PokerContext } from './context.ts'
 
 function App() {
   const socketRef = useRef<WebSocket>(null)
   const pokerApi = usePokerApi(socketRef)
 
-  useEffect(() => {
-    console.log('App rerender')
-  }, [])
-
-  useEffect(() => {
-    console.log(pokerApi.isConnected, Date.now())
-  }, [pokerApi.isConnected])
-
   // Inject the returned value from the hook into the router context
-  return <RouterProvider router={router} context={pokerApi} />
+  return (
+    <PokerContext value={pokerApi}>
+      <RouterProvider router={router} context={pokerApi} />
+    </PokerContext>
+  )
 }
 
 export default function AppWrapper() {

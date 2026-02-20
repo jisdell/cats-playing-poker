@@ -1,21 +1,14 @@
 import { Seat } from './Seat'
 import { Table } from './Table'
-import type { PlayerState } from '@/hooks/usePokerApi'
-// import { useLocation } from '@tanstack/react-router'
+import { useContext } from 'react'
+import { PokerContext } from '@/context'
 
-export const PlayArea = ({
-  players,
-}: {
-  players: PlayerState[] | undefined
-}) => {
-  // const location = useLocation({
-  //   select: (location) => location.pathname,
-  // })
-
-  console.log(players)
+export const PlayArea = () => {
+  const ctx = useContext(PokerContext)
+  const roomState = ctx?.roomState
 
   const genSeats = (side: number) => {
-    return players?.map((player, index) =>
+    return roomState?.players?.map((player, index) =>
       index % 4 === side ? <Seat key={player.id} player={player} /> : null,
     )
   }
