@@ -1,18 +1,8 @@
 import { Seat } from './Seat'
 import { Table } from './Table'
-import { useContext } from 'react'
-import { PokerContext } from '@/context'
+import { usePokerContext } from '@/context'
 
 export const PlayArea = () => {
-  const ctx = useContext(PokerContext)
-  const roomState = ctx?.roomState
-
-  const genSeats = (side: number) => {
-    return roomState?.players?.map((player, index) =>
-      index % 4 === side ? <Seat key={player.id} player={player} /> : null,
-    )
-  }
-
   const seatContainerBase = 'flex items-center justify-center gap-4'
   const seatContainerVertical =
     'flex items-center justify-center flex-col gap-4'
@@ -29,11 +19,11 @@ export const PlayArea = () => {
       <div
         className={`${seatContainerBase} col-span-1 row-start-1 col-start-2 p-4`}
       >
-        {genSeats(0)}
+        <Seats side={0} />
       </div>
       {/* right */}
       <div className={`${seatContainerVertical} col-start-3 row-start-2`}>
-        {genSeats(1)}
+        <Seats side={1} />
       </div>
       {/* middle */}
       <div className="w-[80%] aspect-4/2 col-start-2 row-start-2 flex justify-self-center">
@@ -43,12 +33,21 @@ export const PlayArea = () => {
       <div
         className={`${seatContainerBase} col-span-1 row-start-3 col-start-2 p-4`}
       >
-        {genSeats(2)}
+        <Seats side={2} />
       </div>
       {/* left */}
       <div className={`${seatContainerVertical} col-start-1 row-start-2`}>
-        {genSeats(3)}
+        <Seats side={3} />
       </div>
     </div>
+  )
+}
+
+const Seats = ({ side }: { side: number }) => {
+  const { roomState } = usePokerContext()
+  const players = roomState?.players
+
+  return players?.map((player, index) =>
+    index % 4 === side ? <Seat key={player.id} player={player} /> : null,
   )
 }

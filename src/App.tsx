@@ -3,6 +3,8 @@ import { router } from './router.tsx'
 import { usePokerApi } from '@/hooks/usePokerApi'
 import { StrictMode, useRef } from 'react'
 import { PokerContext } from './context.ts'
+import { TanStackDevtools } from '@tanstack/react-devtools'
+import { formDevtoolsPlugin } from '@tanstack/react-form-devtools'
 
 function App() {
   const socketRef = useRef<WebSocket>(null)
@@ -20,6 +22,7 @@ export default function AppWrapper() {
   return (
     <StrictMode>
       <App />
+      <TanStackDevtools plugins={[formDevtoolsPlugin()]} />
     </StrictMode>
   )
 }
